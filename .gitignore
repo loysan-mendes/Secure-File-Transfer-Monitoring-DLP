@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Python cache
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+
+# Local database
+backend/audit.db
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Editor and System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sandbox test folder files (preserve directory structure but ignore contents)
+sandbox/source_dir/*
+sandbox/sensitive_docs/*
+sandbox/external_usb/*
+!sandbox/source_dir/.gitkeep
+!sandbox/sensitive_docs/.gitkeep
+!sandbox/external_usb/.gitkeep

@@ -14,7 +14,6 @@ import {
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,7 +26,6 @@ ChartJS.register(
   Legend,
   Filler
 );
-
 
 const playAlertSound = (severity) => {
   try {
@@ -58,14 +56,14 @@ const playAlertSound = (severity) => {
       osc.stop(ctx.currentTime + 0.3);
     } else {
       osc.type = "sine";
-      osc.frequency.setValueAtTime(523, ctx.currentTime); 
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
       gain.gain.setValueAtTime(0.05, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
       osc.start();
       osc.stop(ctx.currentTime + 0.25);
     }
   } catch (e) {
-    console.warn("Audio Context playback failed (user interaction required):", e);
+    console.warn("Audio Context playback failed:", e);
   }
 };
 
@@ -96,13 +94,11 @@ export default function App() {
   const [logPage, setLogPage] = useState(0);
   const [totalLogs, setTotalLogs] = useState(0);
   
-  
   const [newMonitoredPath, setNewMonitoredPath] = useState('');
   const [newSensitivePath, setNewSensitivePath] = useState('');
   const [newUsbPath, setNewUsbPath] = useState('');
   const [newAllowedProcess, setNewAllowedProcess] = useState('');
 
-  
   const [hashFileA, setHashFileA] = useState(null);
   const [hashFileB, setHashFileB] = useState(null);
   const [hashResultA, setHashResultA] = useState('');
@@ -110,24 +106,19 @@ export default function App() {
 
   const wsRef = useRef(null);
 
-  
   const fetchData = async () => {
     try {
-      
       const statsRes = await fetch('http://127.0.0.1:8000/api/stats');
       if (statsRes.ok) setStats(await statsRes.json());
 
-      
       const alertsRes = await fetch('http://127.0.0.1:8000/api/alerts');
       if (alertsRes.ok) {
         const data = await alertsRes.json();
         setAlerts(data.alerts);
       }
 
-      
       fetchLogs();
 
-      
       const settingsRes = await fetch('http://127.0.0.1:8000/api/settings');
       if (settingsRes.ok) setSettings(await settingsRes.json());
     } catch (e) {
@@ -153,7 +144,6 @@ export default function App() {
     fetchLogs();
   }, [logPage, searchText]);
 
-  
   useEffect(() => {
     fetchData();
 
@@ -171,9 +161,7 @@ export default function App() {
         console.log("WS Received: ", record);
         
         if (record.is_alert) {
-          
           setAlerts(prev => [record, ...prev]);
-          
           setToasts(prev => [{
             id: Date.now(),
             title: record.rule_name,
@@ -183,15 +171,12 @@ export default function App() {
           
           playAlertSound(record.severity);
           
-          
           setTimeout(() => {
             setToasts(prev => prev.slice(0, prev.length - 1));
           }, 6000);
         } else {
-          
           setEvents(prev => [record, ...prev].slice(0, 100));
         }
-        
         refreshStats();
       };
 
@@ -220,7 +205,6 @@ export default function App() {
     } catch (e) {}
   };
 
-  
   const handleResolveAlert = async (id) => {
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/alerts/${id}/resolve`, { method: 'PUT' });
@@ -275,7 +259,6 @@ export default function App() {
     }
   };
 
-  
   const triggerSimulation = async (type) => {
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/simulate/${type}`, { method: 'POST' });
@@ -286,7 +269,6 @@ export default function App() {
     }
   };
 
-  
   const handleFileDrop = async (e, side) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0] || e.target.files[0];
@@ -317,7 +299,6 @@ export default function App() {
     });
   };
 
-  
   const lineChartData = {
     labels: stats.timeline.map(t => t.time),
     datasets: [
@@ -358,10 +339,10 @@ export default function App() {
       {
         data: Object.values(stats.event_types),
         backgroundColor: [
-          '#10b981', 
-          '#3b82f6', 
-          '#ef4444', 
-          '#8b5cf6', 
+          '#10b981',
+          '#3b82f6',
+          '#ef4444',
+          '#8b5cf6',
         ],
         borderWidth: 0,
       },
@@ -388,10 +369,10 @@ export default function App() {
       {
         data: Object.values(stats.alerts_severity),
         backgroundColor: [
-          '#10b981', 
-          '#f59e0b', 
-          '#ef4444', 
-          '#d97706', 
+          '#10b981',
+          '#f59e0b',
+          '#ef4444',
+          '#d97706',
         ],
         borderRadius: 4
       }
@@ -411,142 +392,256 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {}
       <div className="toast-container">
         {toasts.map(toast => (
           <div key={toast.id} className="toast" style={{ borderColor: `var(--severity-${toast.severity})` }}>
-            <div className="alert-icon">⚠️<div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{toast.desc}<div>
-          <div>
+            <div className="alert-icon">⚠️</div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{toast.title}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{toast.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
 
-      {}
       <div className="sidebar">
         <div className="brand">
-          <div className="brand-icon">🛡️<span>
-        <span> Dashboard
-          <span> Activity Log
-          <span> Active Alerts ({alerts.length})
-          <span> Integrity Checker
-          <span> Rules Engine Settings
-          <div>
+          <div className="brand-icon">🛡️</div>
+          <span className="brand-name">FILE-GUARD DLP</span>
+        </div>
+
+        <div className="nav-links">
+          <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+            <span>📊</span> Dashboard
+          </div>
+          <div className={`nav-item ${activeTab === 'logs' ? 'active' : ''}`} onClick={() => { setActiveTab('logs'); setLogPage(0); }}>
+            <span>📝</span> Activity Log
+          </div>
+          <div className={`nav-item ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
+            <span>⚠️</span> Active Alerts ({alerts.length})
+          </div>
+          <div className={`nav-item ${activeTab === 'integrity' ? 'active' : ''}`} onClick={() => setActiveTab('integrity')}>
+            <span>🔑</span> Integrity Checker
+          </div>
+          <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+            <span>⚙️</span> Rules Engine Settings
+          </div>
+        </div>
 
         <div className="sidebar-footer">
           <div className="flex align-center gap-8 mb-4">
-            <span className={wsConnected ? "live-dot" : "offline-dot"}><span>
-          <p>
-        <div>
+            <span className={wsConnected ? "live-dot" : "offline-dot"}></span>
+            <span>{wsConnected ? "System Live" : "Service Offline"}</span>
+          </div>
+          <p>© 2026 File-Guard DLP</p>
+        </div>
+      </div>
 
-      {}
       <div className="main-content">
-        
-        {}
         <div className="flex justify-between align-center mb-4">
           <div>
-            <h1>Secure File Monitoring System<p>
-          <button>
-            <button className="btn btn-danger" onClick={handleClearLogs}>🗑️ Clear DB Logs<div>
-        <* Threat Simulator Control Panel *span>
+            <h1>Secure File Monitoring System</h1>
+            <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>Real-time file loss prevention & integrity system</p>
+          </div>
+          <div className="flex gap-16">
+            <button className="btn btn-secondary" onClick={fetchData}>🔄 Refresh Data</button>
+            <button className="btn btn-danger" onClick={handleClearLogs}>🗑️ Clear DB Logs</button>
+          </div>
+        </div>
+
+        <div className="simulation-banner">
+          <div className="simulation-info">
+            <span className="simulation-icon">⚡</span>
             <div>
-              <h4 style={{ color: '#fff' }}>Interactive Threat Simulator<p>
-            <div>
+              <h4 style={{ color: '#fff' }}>Interactive Threat Simulator</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '2px 0 0 0' }}>Trigger simulated cyberattacks in the sandbox environment to test detection alerts.</p>
+            </div>
+          </div>
           <div className="simulation-buttons">
-            <button className="btn btn-secondary" onClick={() => triggerSimulation('usb-connect')}>🔌 Plug USB<button>
-            <button className="btn btn-danger" onClick={() => triggerSimulation('usb-exfiltration')}>📤 Exfiltrate USB<button>
-            <button className="btn btn-danger" onClick={() => triggerSimulation('tampering')}>✏️ Tamper File<div>
-        <* Dynamic Views ** VIEW 1: DASHBOARD OVERVIEW ** Stat Cards Grid *span>
-                  <span className="stat-value">{stats.total_events}<div>
-                <div className="stat-icon icon-blue">📂<div>
+            <button className="btn btn-secondary" onClick={() => triggerSimulation('usb-connect')}>🔌 Plug USB</button>
+            <button className="btn btn-danger" onClick={() => triggerSimulation('unauthorized-access')}>⚠️ Malicious Code</button>
+            <button className="btn btn-danger" onClick={() => triggerSimulation('usb-exfiltration')}>📤 Exfiltrate USB</button>
+            <button className="btn btn-danger" onClick={() => triggerSimulation('bulk-burst')}>📦 Bulk Burst</button>
+            <button className="btn btn-danger" onClick={() => triggerSimulation('tampering')}>✏️ Tamper File</button>
+          </div>
+        </div>
+
+        {activeTab === 'dashboard' && (
+          <div>
+            <div className="grid-cols-4">
+              <div className="card stat-card">
+                <div className="stat-info">
+                  <span className="stat-label">Total File Operations</span>
+                  <span className="stat-value">{stats.total_events}</span>
+                </div>
+                <div className="stat-icon icon-blue">📂</div>
+              </div>
 
               <div className="card stat-card">
                 <div className="stat-info">
-                  <span className="stat-label">Active Security Threats<span>
-                <div>
-              <span>
-                  <span className="stat-value">{stats.sensitivity.sensitive}<div>
-                <div className="stat-icon icon-purple">🔒<div>
+                  <span className="stat-label">Active Security Threats</span>
+                  <span className="stat-value" style={{ color: stats.active_alerts > 0 ? 'var(--severity-high)' : 'inherit' }}>
+                    {stats.active_alerts}
+                  </span>
+                </div>
+                <div className="stat-icon icon-red">⚠️</div>
+              </div>
 
               <div className="card stat-card">
                 <div className="stat-info">
-                  <span className="stat-label">Monitored Folders<span>
-                <div>
-              <div>
+                  <span className="stat-label">Restricted Files Audited</span>
+                  <span className="stat-value">{stats.sensitivity.sensitive}</span>
+                </div>
+                <div className="stat-icon icon-purple">🔒</div>
+              </div>
 
-            {}
+              <div className="card stat-card">
+                <div className="stat-info">
+                  <span className="stat-label">Monitored Folders</span>
+                  <span className="stat-value">{settings.monitored_paths.length}</span>
+                </div>
+                <div className="stat-icon icon-teal">📁</div>
+              </div>
+            </div>
+
             <div className="grid-cols-3">
               <div className="card" style={{ gridColumn: 'span 2' }}>
                 <div className="card-title">
-                  <span>📈 File Transfer Activity Timeline<hour<div>
+                  <span>📈 File Transfer Activity Timeline</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Operations per minute/hour</span>
+                </div>
                 <div style={{ height: '230px' }}>
                   {stats.timeline.length > 0 ? (
-                    <Line data={lineChartData} options={lineChartOptions} div>
+                    <Line data={lineChartData} options={lineChartOptions} />
+                  ) : (
+                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                      No timeline data recorded yet. Modify some files in the sandbox.
+                    </div>
                   )}
-                <div>
+                </div>
+              </div>
 
               <div className="card">
-                <div className="card-title">📂 Event Distribution<>
+                <div className="card-title">📂 Event Distribution</div>
+                <div style={{ height: '230px', position: 'relative' }}>
+                  {stats.total_events > 0 ? (
+                    <Pie data={pieChartData} options={pieChartOptions} />
                   ) : (
                     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                       No events logged yet.
-                    <div>
-              <div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <div className="grid-cols-2">
               <div className="card">
-                <div className="card-title">⚡ Alert Severity Summary<>
-                <div>
+                <div className="card-title">⚡ Alert Severity Summary</div>
+                <div style={{ height: '200px' }}>
+                  <Bar data={barChartData} options={barChartOptions} />
+                </div>
+              </div>
 
               <div className="card">
-                <div className="card-title">🔍 Top Active Processes<span>
-                        <span style={{ fontWeight: 'bold' }}>{count} edits<div>
+                <div className="card-title">🔍 Top Active Processes</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {Object.keys(stats.top_processes).length > 0 ? (
+                    Object.entries(stats.top_processes).map(([proc, count]) => (
+                      <div key={proc} className="flex justify-between align-center" style={{ padding: '8px 12px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                        <span className="file-path">{proc}</span>
+                        <span style={{ fontWeight: 'bold' }}>{count} edits</span>
+                      </div>
                     ))
                   ) : (
-                    <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>No process history.<div>
-              <div>
+                    <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>No process history.</div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-            {}
             <div className="card">
               <div className="card-title">
-                <span>🚨 Recent Unresolved Violations<button>
-              <span>
-                        <span className="alert-rule">{alert.rule_name}<div>
-                      <div className="alert-desc">{alert.description}<span>
-                        {alert.src_path && <span>📂 Source: <span className="file-path">{alert.src_path}<span>}
-                      <div>
-                    <button className="btn btn-success" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleResolveAlert(alert.id)}>Resolve<div>
+                <span>🚨 Recent Unresolved Violations</span>
+                <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.8rem' }} onClick={() => setActiveTab('alerts')}>View All</button>
+              </div>
+              <div>
+                {alerts.slice(0, 3).map(alert => (
+                  <div key={alert.id} className={`alert-item border-${alert.severity}`}>
+                    <div className="alert-content">
+                      <div className="alert-header">
+                        <span className={`badge severity-${alert.severity}`}>{alert.severity}</span>
+                        <span className="alert-rule">{alert.rule_name}</span>
+                      </div>
+                      <div className="alert-desc">{alert.description}</div>
+                      <div className="alert-meta">
+                        <span>⏰ {new Date(alert.timestamp).toLocaleTimeString()}</span>
+                        {alert.src_path && <span>📂 Source: <span className="file-path">{alert.src_path}</span></span>}
+                      </div>
+                    </div>
+                    <button className="btn btn-success" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleResolveAlert(alert.id)}>Resolve</button>
+                  </div>
                 ))}
                 {alerts.length === 0 && (
                   <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     🟢 Clean Audit Status. No security alerts detected!
-                  <div>
-            <div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
-        {}
         {activeTab === 'logs' && (
           <div className="card">
             <div className="card-title">
-              <span>📋 Comprehensive Audit Logs<>
-              <div>
+              <span>📋 Comprehensive Audit Logs</span>
+              <div className="flex gap-16">
+                <input
+                  type="text"
+                  placeholder="Search file name, path, process..."
+                  className="form-control"
+                  style={{ width: '250px', padding: '6px 12px', fontSize: '0.85rem' }}
+                  value={searchText}
+                  onChange={(e) => { setSearchText(e.target.value); setLogPage(0); }}
+                />
+              </div>
+            </div>
 
             <div className="table-container">
               <table>
                 <thead>
                   <tr>
-                    <th>Timestamp<th>
-                    <th>Sensitivity<th>
-                    <th>Destination Path<th>
-                    <th>SHA256 Hash<tr>
-                <td>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Sensitivity</th>
+                    <th>Source Path</th>
+                    <th>Destination Path</th>
+                    <th>Process</th>
+                    <th>SHA256 Hash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map(event => (
+                    <tr key={event.id}>
+                      <td style={{ color: 'var(--text-secondary)' }}>{new Date(event.timestamp).toLocaleTimeString()}</td>
                       <td>
-                        <span className={`badge badge-${event.event_type}`}>{event.event_type}<td>
+                        <span className={`badge badge-${event.event_type}`}>{event.event_type}</span>
+                      </td>
                       <td>
                         <span className={`badge ${event.is_sensitive ? 'badge-sensitive' : 'badge-normal'}`}>
                           {event.is_sensitive ? 'Sensitive' : 'Normal'}
-                        <td>
+                        </span>
+                      </td>
                       <td>
                         <span className="file-path" title={event.src_path}>
-                          {event.src_path.split('\\').pop() || event.src_path.split('span>
-                      <').pop()}
+                          {event.src_path.split('\\').pop() || event.src_path.split('/').pop()}
+                        </span>
+                      </td>
+                      <td>
+                        {event.dest_path ? (
+                          <span className="file-path dest" title={event.dest_path}>
+                            {event.dest_path.split('\\').pop() || event.dest_path.split('/').pop()}
                           </span>
                         ) : (
                           <span style={{ color: 'var(--text-muted)' }}>-</span>
@@ -577,7 +672,6 @@ export default function App() {
               </table>
             </div>
 
-            {/* Pagination Controls */}
             <div className="flex justify-between align-center mt-4">
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 Showing page {logPage + 1} (Total {totalLogs} events)
@@ -590,7 +684,6 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 3: ACTIVE SECURITY ALERTS */}
         {activeTab === 'alerts' && (
           <div className="card">
             <div className="card-title">
@@ -644,11 +737,8 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 4: FILE INTEGRITY CHECKER */}
         {activeTab === 'integrity' && (
           <div className="grid-cols-2">
-            
-            {/* File 1 hasher */}
             <div className="card">
               <div className="card-title">🔑 File Identity A</div>
               <div 
@@ -678,7 +768,6 @@ export default function App() {
               )}
             </div>
 
-            {/* File 2 hasher */}
             <div className="card">
               <div className="card-title">🔑 File Identity B</div>
               <div 
@@ -708,7 +797,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Integrity report outcome */}
             <div className="card" style={{ gridColumn: 'span 2' }}>
               <div className="card-title">🛡️ Integrity Analysis</div>
               {hashResultA && hashResultB ? (
@@ -734,7 +822,6 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 5: CONFIGURATION & SETTINGS */}
         {activeTab === 'settings' && (
           <div className="card">
             <div className="card-title">
@@ -812,11 +899,21 @@ export default function App() {
 
             <div className="grid-cols-2 mt-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
               <div className="form-group">
-                <label>Bulk Operation Threshold (Max events)<>
-              <label>
-                <input type="number" className="form-control" value={settings.bulk_transfer_window} onChange={e => setSettings(prev => ({...prev, bulk_transfer_window: parseInt(e.target.value)}))} div>
-            <button>
-          <div>
+                <label>Bulk Operation Threshold (Max events)</label>
+                <input type="number" className="form-control" value={settings.bulk_transfer_threshold} onChange={e => setSettings(prev => ({...prev, bulk_transfer_threshold: parseInt(e.target.value)}))} />
+              </div>
+              <div className="form-group">
+                <label>Bulk Operation Window (Seconds)</label>
+                <input type="number" className="form-control" value={settings.bulk_transfer_window} onChange={e => setSettings(prev => ({...prev, bulk_transfer_window: parseInt(e.target.value)}))} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-16 mt-4" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+              <button className="btn btn-primary" onClick={handleSaveSettings}>💾 Save Configuration</button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
